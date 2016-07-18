@@ -1,0 +1,5 @@
+# /node_modules/* and /bower_components/* ignored by default
+
+/build/**
+webpack.config.js
+js/backbone.localStorage.js

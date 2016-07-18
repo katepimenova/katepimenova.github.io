@@ -1,0 +1,60 @@
+@background-color: #9BB2C4;
+@text-color: #000000;
+@chart-background-color: #FFF;
+@round-color: #62AD5E;
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Sans-serif", Verdana;
+}
+
+h4 {font-weight: normal;}
+
+#main-container {
+  background: @background-color;
+  color: @text-color;
+  width: 660px;
+  margin: 0 auto;
+  padding: 30px;
+  input {width: 50px;}
+  button {margin-left: 50px;}
+  .rounds-controls div {
+    display: inline-block;
+    width: 150px;
+    margin-bottom: 5px;
+  }
+  .d3 {
+    font: 10px sans-serif;
+    border: 1px solid #555;
+  }
+  .d3bg {
+    fill: @chart-background-color;
+  }
+  .d3-point {
+    fill: @round-color;
+    stroke: #1D5FA2;
+    stroke-width: 0;
+  }
+  .error {
+    color: red;
+    margin-top: 10px;
+  }
+}
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+  }
+  #main-container {
+    background-color: spin(@background-color, 180);
+    color: spin(@text-color, 180);
+    .d3bg {
+      fill: #FFF - @chart-background-color;
+    }
+    .d3-point {
+      fill: #FFF - @round-color;
+    }
+  }
+}
