@@ -47,7 +47,7 @@ d3Chart._scales = (el, domain) => {
     .domain(domain.y);
 
   var z = d3.scale.linear()
-    .range([5, 20])
+    .range([0, 50])
     .domain([1, 10]);
 
   return {x: x, y: y, z: z};

@@ -2,4 +2,4 @@
 
 /build/**
 webpack.config.js
-js/backbone.localStorage.js
+lib

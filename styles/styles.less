@@ -1,7 +1,7 @@
 @background-color: #9BB2C4;
 @text-color: #000000;
 @chart-background-color: #FFF;
-@round-color: #62AD5E;
+@circle-color: #62AD5E;
 
 html, body {
   height: 100%;
@@ -15,15 +15,19 @@ h4 {font-weight: normal;}
 #main-container {
   background: @background-color;
   color: @text-color;
-  width: 660px;
+  width: 600px;
   margin: 0 auto;
   padding: 30px;
   input {width: 50px;}
   button {margin-left: 50px;}
-  .rounds-controls div {
+  .circles-controls div {
     display: inline-block;
-    width: 150px;
+    width: 140px;
     margin-bottom: 5px;
+  }
+  .circles-controls span {
+    display: inline-block;
+    width: 30px;
   }
   .d3 {
     font: 10px sans-serif;
@@ -33,7 +37,7 @@ h4 {font-weight: normal;}
     fill: @chart-background-color;
   }
   .d3-point {
-    fill: @round-color;
+    fill: @circle-color;
     stroke: #1D5FA2;
     stroke-width: 0;
   }
@@ -54,7 +58,7 @@ h4 {font-weight: normal;}
       fill: #FFF - @chart-background-color;
     }
     .d3-point {
-      fill: #FFF - @round-color;
+      fill: #FFF - @circle-color;
     }
   }
 }

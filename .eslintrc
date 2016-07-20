@@ -14,20 +14,15 @@ rules:
   linebreak-style: [2, unix]
   semi: [2, always]
   # disabled rules from openstack config
-  consistent-return: 1 # we have lots of incosistent returns which need to be fixed
-  no-extra-parens: 0 # extra parens are preferred with JSX
-  no-warning-comments: 0 # we're ok with FIXMEs
-  no-process-env: 0 # we use it in a few places and are ok with it
-
-  # overridden rules from openstack config
-  curly: [2, multi-line, consistent] # openstack config uses 'all' mode, but we're ok with braceless one-liners
-  no-empty: [2, {allowEmptyCatch: true}] # we use empty blocks with try-catch
-  operator-linebreak: [2, after, {overrides: {'?': ignore, ':': ignore}}] # disabled for ternary operator due to its heavy use in JSX
-
+  consistent-return: 1
+  no-extra-parens: 0
+  no-warning-comments: 0
+  no-process-env: 0
+  curly: [2, multi-line, consistent]
+  no-empty: [2, {allowEmptyCatch: true}]
   # extra rules
   no-unexpected-multiline: 2
   dot-location: [2, property]
-  yoda: 2
   no-undef: 1
   array-bracket-spacing: 2
   comma-spacing: 2

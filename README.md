@@ -1,6 +1,8 @@
-# rounds-app
+# circles-app
 
-## To start:
+demo https://katepimenova.github.io/
+
+## To run the app locally:
 
 Clone this repo, then:
 

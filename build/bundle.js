@@ -70,9 +70,9 @@
 
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 
-	var _rounds = __webpack_require__(189);
+	var _circles = __webpack_require__(189);
 
-	var _rounds2 = _interopRequireDefault(_rounds);
+	var _circles2 = _interopRequireDefault(_circles);
 
 	var _models = __webpack_require__(196);
 
@@ -86,21 +86,17 @@
 	  function App() {
 	    (0, _classCallCheck3.default)(this, App);
 
-	    this.rounds = new _models2.default.Rounds();
+	    this.circles = new _models2.default.Circles();
 	  }
 
 	  (0, _createClass3.default)(App, [{
 	    key: 'initialize',
 	    value: function initialize() {
-	      this.rounds.fetch().then(function (data) {
+	      this.circles.fetch().then(function (data) {
 	        var RootComponent = _react2.default.createClass({
 	          displayName: 'RootComponent',
 	          render: function render() {
-	            return _react2.default.createElement(
-	              'div',
-	              { id: 'content-wrapper' },
-	              _react2.default.createElement(_rounds2.default, { roundsCollection: data })
-	            );
+	            return _react2.default.createElement(_circles2.default, { circlesCollection: data });
 	          }
 	        });
 	        _reactDom2.default.render(_react2.default.createElement(RootComponent, null), (0, _jquery2.default)('#main-container')[0]);
@@ -30799,11 +30795,11 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var RoundsPage = _react2.default.createClass({
-	  displayName: 'RoundsPage',
+	var CirclesPage = _react2.default.createClass({
+	  displayName: 'CirclesPage',
 	  getInitialState: function getInitialState() {
 	    return {
-	      data: this.props.roundsCollection || [],
+	      data: this.props.circlesCollection || [],
 	      domain: { x: [0, 100], y: [0, 100] }
 	    };
 	  },
@@ -30813,21 +30809,21 @@
 	  render: function render() {
 	    return _react2.default.createElement(
 	      'div',
-	      { className: 'rounds-page' },
+	      { className: 'circles-page' },
 	      _react2.default.createElement(
 	        'h2',
 	        null,
-	        'Rounds'
+	        'Circles'
 	      ),
 	      _react2.default.createElement(
 	        'div',
-	        { className: 'rounds-chart' },
+	        { className: 'circles-chart' },
 	        _react2.default.createElement(Chart, {
 	          appState: this.state,
 	          setAppState: this.setAppState
 	        })
 	      ),
-	      _react2.default.createElement(RoundControl, {
+	      _react2.default.createElement(CirclesControl, {
 	        appState: this.state,
 	        setAppState: this.setAppState
 	      })
@@ -30840,7 +30836,7 @@
 	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      width: '100%',
-	      height: '300px'
+	      height: '600px'
 	    };
 	  },
 
@@ -30862,35 +30858,35 @@
 	  }
 	});
 
-	var RoundControl = _react2.default.createClass({
-	  displayName: 'RoundControl',
+	var CirclesControl = _react2.default.createClass({
+	  displayName: 'CirclesControl',
 	  getInitialState: function getInitialState() {
 	    return {
-	      x: 10,
-	      y: 10,
-	      z: 10,
+	      x: 5,
+	      y: 5,
+	      z: 5,
 	      error: false
 	    };
 	  },
 	  render: function render() {
 	    var _this = this;
 
-	    var rounds = this.props.appState.data;
+	    var circles = this.props.appState.data;
 	    return _react2.default.createElement(
 	      'div',
 	      null,
 	      _react2.default.createElement(
 	        'h4',
 	        null,
-	        'You can add up to 5 rounds in the chart. Use x/y/diameter inputs to define rounds parameters.'
+	        'You can add up to 5 circles. Use x/y coordinates of circle center and its radius to add the shape.'
 	      ),
-	      _lodash2.default.map(rounds, function (round) {
-	        return _this.viewRoundParameters(rounds, round);
+	      _lodash2.default.map(circles, function (circle, key) {
+	        return _this.viewCircleParameters(circles, circle, key);
 	      }),
-	      rounds.length < 5 && _react2.default.createElement(
+	      circles.length < 5 && _react2.default.createElement(
 	        'div',
 	        null,
-	        this.addRoundControl(rounds)
+	        this.addCircleControl(circles)
 	      ),
 	      !!this.state.error && _react2.default.createElement(
 	        'div',
@@ -30899,10 +30895,16 @@
 	      )
 	    );
 	  },
-	  viewRoundParameters: function viewRoundParameters(rounds, round) {
+	  viewCircleParameters: function viewCircleParameters(circles, circle, key) {
 	    return _react2.default.createElement(
 	      'div',
-	      { className: 'rounds-controls', key: round.id },
+	      { className: 'circles-controls', key: circle.id },
+	      _react2.default.createElement(
+	        'span',
+	        null,
+	        key + 1,
+	        '.'
+	      ),
 	      _react2.default.createElement(
 	        'div',
 	        null,
@@ -30911,7 +30913,7 @@
 	          null,
 	          'x: '
 	        ),
-	        round.x,
+	        circle.x,
 	        ';'
 	      ),
 	      _react2.default.createElement(
@@ -30922,7 +30924,7 @@
 	          null,
 	          'y: '
 	        ),
-	        round.y,
+	        circle.y,
 	        ';'
 	      ),
 	      _react2.default.createElement(
@@ -30931,9 +30933,9 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          'diameter: '
+	          'radius: '
 	        ),
-	        round.z,
+	        circle.z,
 	        ';'
 	      ),
 	      _react2.default.createElement(
@@ -30941,16 +30943,21 @@
 	        null,
 	        _react2.default.createElement(
 	          'button',
-	          { onClick: _lodash2.default.partial(this.handleRemove, round.id) },
+	          { onClick: _lodash2.default.partial(this.handleRemove, circle.id) },
 	          'Remove'
 	        )
 	      )
 	    );
 	  },
-	  addRoundControl: function addRoundControl() {
+	  addCircleControl: function addCircleControl() {
 	    return _react2.default.createElement(
 	      'div',
-	      { className: 'rounds-controls' },
+	      { className: 'circles-controls' },
+	      _react2.default.createElement(
+	        'span',
+	        null,
+	        ' '
+	      ),
 	      _react2.default.createElement(
 	        'div',
 	        null,
@@ -30977,7 +30984,7 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          ' diameter: '
+	          ' radius: '
 	        ),
 	        _react2.default.createElement('input', { type: 'number', name: 'z', ref: 'z', min: '0', max: '100', onChange: this.handleChange, value: this.state.z })
 	      ),
@@ -30987,60 +30994,77 @@
 	        _react2.default.createElement(
 	          'button',
 	          { onClick: this.handleAdd, disabled: !!this.state.error },
-	          'Add'
+	          'Add Circle'
 	        )
 	      )
 	    );
 	  },
 	  handleAdd: function handleAdd() {
-	    var roundsState = _lodash2.default.clone(this.props.appState);
-	    var round = new _models2.default.Round();
-	    var roundData = {
-	      id: !_lodash2.default.isEmpty(roundsState.data) ? _lodash2.default.last(roundsState.data).id + 1 : 1,
-	      x: this.refs.x.value,
-	      y: this.refs.y.value,
-	      z: this.refs.z.value
-	    };
-	    round.set(roundData);
-	    app.rounds.add(round);
-	    round.save();
+	    if (this.validateRadius()) {
+	      var circlesState = _lodash2.default.clone(this.props.appState);
+	      var circle = new _models2.default.Circle();
+	      var circleData = {
+	        id: !_lodash2.default.isEmpty(circlesState.data) ? _lodash2.default.last(circlesState.data).id + 1 : 1,
+	        x: this.refs.x.value,
+	        y: this.refs.y.value,
+	        z: this.refs.z.value
+	      };
+	      circle.set(circleData);
+	      app.circles.add(circle);
+	      circle.save();
 
-	    roundsState.data.push(roundData);
-	    this.props.setAppState(roundsState);
+	      circlesState.data.push(circleData);
+	      this.props.setAppState(circlesState);
+	    }
 	  },
-	  handleRemove: function handleRemove(roundId) {
-	    var round = app.rounds.get(roundId);
-	    round.destroy();
+	  handleRemove: function handleRemove(circleId) {
+	    this.setState({ error: false });
+	    var circle = app.circles.get(circleId);
+	    circle.destroy();
 
-	    var roundsState = _lodash2.default.clone(this.props.appState);
-	    _lodash2.default.remove(roundsState.data, function (round) {
-	      return round.id === roundId;
+	    var circlesState = _lodash2.default.clone(this.props.appState);
+	    _lodash2.default.remove(circlesState.data, function (circle) {
+	      return circle.id === circleId;
 	    });
-	    this.props.setAppState(roundsState);
+	    this.props.setAppState(circlesState);
 	  },
 	  handleChange: function handleChange(e) {
 	    this.setState({ error: false });
-	    var appState = this.props.appState;
 	    if (e.target.name === 'z') {
-	      // validate that the sum of circles diameters cannot be larger than the viewport width
-	      var sum = _lodash2.default.reduce(appState.data, function (result, round) {
-	        return result + parseInt(round.z);
-	      }, 0);
-	      if (sum + parseInt(e.target.value) > appState.domain.x[1]) {
-	        this.setState({ error: 'Error: Sum of circles diameters cannot be larger than the viewport width' });
-	      }
+	      this.validateRadius(e.target.value);
 	    }
 	    if (e.target.name === 'x' || e.target.name === 'y') {
-	      // validate corrdinates
-	      if (parseInt(e.target.value) > appState.domain[e.target.name][1] || parseInt(e.target.value) < appState.domain[e.target.name][0]) {
-	        this.setState({ error: 'Error: This coordinates are outside the viewport' });
-	      }
+	      this.validateCoordinates(e.target.name, e.target.value);
 	    }
 	    this.setState((0, _defineProperty3.default)({}, e.target.name, e.target.value));
+	  },
+	  validateRadius: function validateRadius(radius) {
+	    if (!radius) radius = this.state.z;
+	    // validate that the sum of circles diameters cannot be larger than the viewport width
+	    var appState = this.props.appState;
+	    var sum = _lodash2.default.reduce(appState.data, function (result, circle) {
+	      return result + parseInt(circle.z);
+	    }, 0);
+	    if ((sum + parseInt(radius)) * 2 > appState.domain.x[1]) {
+	      this.setState({ error: 'Error: Sum of circles diameters cannot be larger than the viewport width (must be <= 100)' });
+	      return false;
+	    } else if (parseInt(radius) <= 0) {
+	      this.setState({ error: 'Error: Invalid radius size (must be > 0)' });
+	      return false;
+	    }
+	    return true;
+	  },
+	  validateCoordinates: function validateCoordinates(coordName, coordValue) {
+	    var appState = this.props.appState;
+	    if (parseInt(coordValue) > appState.domain[coordName][1] || parseInt(coordValue) < appState.domain[coordName][0]) {
+	      this.setState({ error: 'Error: The new circle won\'t fit the viewport' });
+	      return false;
+	    }
+	    return true;
 	  }
 	});
 
-	exports.default = RoundsPage;
+	exports.default = CirclesPage;
 
 /***/ },
 /* 190 */
@@ -47533,7 +47557,7 @@
 
 	  var y = _d2.default.scale.linear().range([height, 0]).domain(domain.y);
 
-	  var z = _d2.default.scale.linear().range([5, 20]).domain([1, 10]);
+	  var z = _d2.default.scale.linear().range([0, 50]).domain([1, 10]);
 
 	  return { x: x, y: y, z: z };
 	};
@@ -57466,20 +57490,20 @@
 
 	var models = {};
 
-	models.Round = _backbone2.default.Model.extend({
-	  constructorName: 'Round',
+	models.Circle = _backbone2.default.Model.extend({
+	  constructorName: 'Circle',
 	  defaults: {
 	    id: null,
-	    x: null,
-	    y: null,
-	    z: null
+	    x: null, // x coordinates
+	    y: null, // y coordinates
+	    z: null // radius coordinates
 	  }
 	});
 
-	models.Rounds = _backbone2.default.Collection.extend({
-	  constructorName: 'Rounds',
-	  model: models.Round,
-	  localStorage: new _backbone4.default('rounds-collection')
+	models.Circles = _backbone2.default.Collection.extend({
+	  constructorName: 'Circles',
+	  model: models.Circle,
+	  localStorage: new _backbone4.default('circles-collection')
 	});
 
 	exports.default = models;
@@ -62332,7 +62356,7 @@
 /***/ function(module, exports) {
 
 	module.exports =
-		"html,\nbody {\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  font-family: \"Sans-serif\", Verdana;\n}\nh4 {\n  font-weight: normal;\n}\n#main-container {\n  background: #9BB2C4;\n  color: #000000;\n  width: 660px;\n  margin: 0 auto;\n  padding: 30px;\n}\n#main-container input {\n  width: 50px;\n}\n#main-container button {\n  margin-left: 50px;\n}\n#main-container .rounds-controls div {\n  display: inline-block;\n  width: 150px;\n  margin-bottom: 5px;\n}\n#main-container .d3 {\n  font: 10px sans-serif;\n  border: 1px solid #555;\n}\n#main-container .d3bg {\n  fill: #FFF;\n}\n#main-container .d3-point {\n  fill: #62AD5E;\n  stroke: #1D5FA2;\n  stroke-width: 0;\n}\n#main-container .error {\n  color: red;\n  margin-top: 10px;\n}\n@media print {\n  body {\n    -webkit-print-color-adjust: exact;\n  }\n  #main-container {\n    background-color: #c4ad9b;\n    color: #000000;\n  }\n  #main-container .d3bg {\n    fill: #000000;\n  }\n  #main-container .d3-point {\n    fill: #9d52a1;\n  }\n}\n";
+		"html,\nbody {\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  font-family: \"Sans-serif\", Verdana;\n}\nh4 {\n  font-weight: normal;\n}\n#main-container {\n  background: #9BB2C4;\n  color: #000000;\n  width: 600px;\n  margin: 0 auto;\n  padding: 30px;\n}\n#main-container input {\n  width: 50px;\n}\n#main-container button {\n  margin-left: 50px;\n}\n#main-container .circles-controls div {\n  display: inline-block;\n  width: 140px;\n  margin-bottom: 5px;\n}\n#main-container .circles-controls span {\n  display: inline-block;\n  width: 30px;\n}\n#main-container .d3 {\n  font: 10px sans-serif;\n  border: 1px solid #555;\n}\n#main-container .d3bg {\n  fill: #FFF;\n}\n#main-container .d3-point {\n  fill: #62AD5E;\n  stroke: #1D5FA2;\n  stroke-width: 0;\n}\n#main-container .error {\n  color: red;\n  margin-top: 10px;\n}\n@media print {\n  body {\n    -webkit-print-color-adjust: exact;\n  }\n  #main-container {\n    background-color: #c4ad9b;\n    color: #000000;\n  }\n  #main-container .d3bg {\n    fill: #000000;\n  }\n  #main-container .d3-point {\n    fill: #9d52a1;\n  }\n}\n";
 
 /***/ },
 /* 257 */
