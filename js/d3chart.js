@@ -1,7 +1,6 @@
 import d3 from 'd3';
 import {EventEmitter} from 'events';
 
-var ANIMATION_DURATION = 400;
 var d3Chart = {};
 
 d3Chart.create = (el, props, state) => {
@@ -46,11 +45,11 @@ d3Chart._scales = (el, domain) => {
     .range([height, 0])
     .domain(domain.y);
 
-  var z = d3.scale.linear()
-    .range([0, 50])
+  var r = d3.scale.linear()
+    .range([0, 46])
     .domain([1, 10]);
 
-  return {x: x, y: y, z: z};
+  return {x: x, y: y, r: r};
 };
 
 d3Chart._drawPoints = (el, scales, data, prevScales, dispatcher) => {
@@ -68,11 +67,10 @@ d3Chart._drawPoints = (el, scales, data, prevScales, dispatcher) => {
         return scales.x(d.x);
       })
     .transition()
-      .duration(ANIMATION_DURATION)
       .attr('cx', (d) => scales.x(d.x));
 
   point.attr('cy', (d) => scales.y(d.y))
-      .attr('r', (d) => scales.z(d.z))
+      .attr('r', (d) => scales.r(d.r))
       .on('mouseover', (d) => {
         dispatcher.emit('point:mouseover', d);
       })
@@ -80,13 +78,11 @@ d3Chart._drawPoints = (el, scales, data, prevScales, dispatcher) => {
         dispatcher.emit('point:mouseout', d);
       })
     .transition()
-      .duration(ANIMATION_DURATION)
       .attr('cx', (d) => scales.x(d.x));
 
   if (prevScales) {
     point.exit()
       .transition()
-        .duration(ANIMATION_DURATION)
         .attr('cx', (d) => scales.x(d.x))
         .remove();
   }

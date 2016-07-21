@@ -74,10 +74,6 @@
 
 	var _circles2 = _interopRequireDefault(_circles);
 
-	var _models = __webpack_require__(196);
-
-	var _models2 = _interopRequireDefault(_models);
-
 	__webpack_require__(255);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -85,22 +81,18 @@
 	var App = function () {
 	  function App() {
 	    (0, _classCallCheck3.default)(this, App);
-
-	    this.circles = new _models2.default.Circles();
 	  }
 
 	  (0, _createClass3.default)(App, [{
 	    key: 'initialize',
 	    value: function initialize() {
-	      this.circles.fetch().then(function (data) {
-	        var RootComponent = _react2.default.createClass({
-	          displayName: 'RootComponent',
-	          render: function render() {
-	            return _react2.default.createElement(_circles2.default, { circlesCollection: data });
-	          }
-	        });
-	        _reactDom2.default.render(_react2.default.createElement(RootComponent, null), (0, _jquery2.default)('#main-container')[0]);
+	      var RootComponent = _react2.default.createClass({
+	        displayName: 'RootComponent',
+	        render: function render() {
+	          return _react2.default.createElement(_circles2.default, null);
+	        }
 	      });
+	      _reactDom2.default.render(_react2.default.createElement(RootComponent, null), (0, _jquery2.default)('#main-container')[0]);
 	    }
 	  }]);
 	  return App;
@@ -30797,16 +30789,27 @@
 
 	var CirclesPage = _react2.default.createClass({
 	  displayName: 'CirclesPage',
-	  getInitialState: function getInitialState() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      data: this.props.circlesCollection || [],
 	      domain: { x: [0, 100], y: [0, 100] }
 	    };
 	  },
-	  setAppState: function setAppState(state) {
-	    return this.setState(state);
+	  componentDidMount: function componentDidMount() {
+	    var _this = this;
+
+	    var circles = new _models2.default.Circles();
+	    circles.fetch().then(function () {
+	      _this.updateCircles(circles);
+	    });
+	  },
+	  updateCircles: function updateCircles(circles) {
+	    return this.setState({ circles: circles });
 	  },
 	  render: function render() {
+	    if (!this.state) return null;
+	    var domain = this.props.domain;
+	    var circles = this.state.circles;
+
 	    return _react2.default.createElement(
 	      'div',
 	      { className: 'circles-page' },
@@ -30818,15 +30821,9 @@
 	      _react2.default.createElement(
 	        'div',
 	        { className: 'circles-chart' },
-	        _react2.default.createElement(Chart, {
-	          appState: this.state,
-	          setAppState: this.setAppState
-	        })
+	        _react2.default.createElement(Chart, { domain: domain, circles: circles })
 	      ),
-	      _react2.default.createElement(CirclesControl, {
-	        appState: this.state,
-	        setAppState: this.setAppState
-	      })
+	      _react2.default.createElement(CirclesDataTable, { domain: domain, circles: circles, updateCircles: this.updateCircles })
 	    );
 	  }
 	});
@@ -30836,74 +30833,79 @@
 	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      width: '100%',
-	      height: '600px'
+	      height: '500px'
 	    };
 	  },
 
 	  dispatcher: null,
 	  componentDidMount: function componentDidMount() {
-	    var el = _reactDom2.default.findDOMNode(this);
-	    var dispatcher = _d3chart2.default.create(el, {
-	      width: this.props.width,
-	      height: this.props.height
-	    }, this.props.appState);
-	    this.dispatcher = dispatcher;
+	    var _props = this.props;
+	    var circles = _props.circles;
+	    var domain = _props.domain;
+	    var width = _props.width;
+	    var height = _props.height;
+
+	    this.dispatcher = _d3chart2.default.create(_reactDom2.default.findDOMNode(this), { width: width, height: height }, { domain: domain, data: circles.toJSON() });
 	  },
 	  componentDidUpdate: function componentDidUpdate() {
-	    var el = _reactDom2.default.findDOMNode(this);
-	    _d3chart2.default.update(el, this.props.appState, this.dispatcher);
+	    var _props2 = this.props;
+	    var circles = _props2.circles;
+	    var domain = _props2.domain;
+
+	    _d3chart2.default.update(_reactDom2.default.findDOMNode(this), { domain: domain, data: circles.toJSON() }, this.dispatcher);
 	  },
 	  render: function render() {
 	    return _react2.default.createElement('div', { className: 'chart' });
 	  }
 	});
 
-	var CirclesControl = _react2.default.createClass({
-	  displayName: 'CirclesControl',
+	var CirclesDataTable = _react2.default.createClass({
+	  displayName: 'CirclesDataTable',
 	  getInitialState: function getInitialState() {
 	    return {
-	      x: 5,
-	      y: 5,
-	      z: 5,
-	      error: false
+	      circle: new _models2.default.Circle({
+	        x: 0,
+	        y: 0,
+	        r: 5
+	      })
 	    };
 	  },
 	  render: function render() {
-	    var _this = this;
+	    var circles = this.props.circles;
 
-	    var circles = this.props.appState.data;
+	    var errors = this.state.circle.validationError;
 	    return _react2.default.createElement(
 	      'div',
-	      null,
+	      { className: 'circles-control' },
 	      _react2.default.createElement(
 	        'h4',
 	        null,
 	        'You can add up to 5 circles. Use x/y coordinates of circle center and its radius to add the shape.'
 	      ),
-	      _lodash2.default.map(circles, function (circle, key) {
-	        return _this.viewCircleParameters(circles, circle, key);
-	      }),
-	      circles.length < 5 && _react2.default.createElement(
-	        'div',
-	        null,
-	        this.addCircleControl(circles)
-	      ),
-	      !!this.state.error && _react2.default.createElement(
-	        'div',
+	      circles.map(this.renderCircleData),
+	      circles.length < 5 && this.renderNewCircleForm(),
+	      _react2.default.createElement(
+	        'ul',
 	        { className: 'error' },
-	        this.state.error
+	        _lodash2.default.map(errors, function (error, key) {
+	          return _react2.default.createElement(
+	            'li',
+	            { key: key },
+	            error
+	          );
+	        })
 	      )
 	    );
 	  },
-	  viewCircleParameters: function viewCircleParameters(circles, circle, key) {
+	  renderCircleData: function renderCircleData(circle, index) {
 	    return _react2.default.createElement(
 	      'div',
-	      { className: 'circles-controls', key: circle.id },
+	      { className: 'circles-controls', key: index },
 	      _react2.default.createElement(
 	        'span',
 	        null,
-	        key + 1,
-	        '.'
+	        index + 1,
+	        '.  '
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -30911,9 +30913,10 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          'x: '
+	          'x:'
 	        ),
-	        circle.x,
+	        ' ',
+	        circle.get('x'),
 	        ';'
 	      ),
 	      _react2.default.createElement(
@@ -30922,9 +30925,10 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          'y: '
+	          'y:'
 	        ),
-	        circle.y,
+	        ' ',
+	        circle.get('y'),
 	        ';'
 	      ),
 	      _react2.default.createElement(
@@ -30933,9 +30937,10 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          'radius: '
+	          'radius:'
 	        ),
-	        circle.z,
+	        ' ',
+	        circle.get('r'),
 	        ';'
 	      ),
 	      _react2.default.createElement(
@@ -30943,13 +30948,17 @@
 	        null,
 	        _react2.default.createElement(
 	          'button',
-	          { onClick: _lodash2.default.partial(this.handleRemove, circle.id) },
+	          { onClick: _lodash2.default.partial(this.removeCircle, circle.id) },
 	          'Remove'
 	        )
 	      )
 	    );
 	  },
-	  addCircleControl: function addCircleControl() {
+	  renderNewCircleForm: function renderNewCircleForm() {
+	    var circle = this.state.circle;
+	    var domain = this.props.domain;
+
+	    var errors = circle.validationError || {};
 	    return _react2.default.createElement(
 	      'div',
 	      { className: 'circles-controls' },
@@ -30966,7 +30975,7 @@
 	          null,
 	          'x: '
 	        ),
-	        _react2.default.createElement('input', { type: 'number', name: 'x', ref: 'x', min: '0', max: '100', onChange: this.handleChange, value: this.state.x })
+	        _react2.default.createElement('input', { className: !!errors.x && 'input-error', type: 'number', name: 'x', min: domain.x[0], max: domain.x[1], onChange: this.onChange, value: circle.get('x') })
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -30974,9 +30983,9 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          ' y: '
+	          'y: '
 	        ),
-	        _react2.default.createElement('input', { type: 'number', name: 'y', ref: 'y', min: '0', max: '100', onChange: this.handleChange, value: this.state.y })
+	        _react2.default.createElement('input', { className: !!errors.y && 'input-error', type: 'number', name: 'y', min: domain.y[0], max: domain.y[1], onChange: this.onChange, value: circle.get('y') })
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -30984,83 +30993,68 @@
 	        _react2.default.createElement(
 	          'label',
 	          null,
-	          ' radius: '
+	          'radius: '
 	        ),
-	        _react2.default.createElement('input', { type: 'number', name: 'z', ref: 'z', min: '0', max: '100', onChange: this.handleChange, value: this.state.z })
+	        _react2.default.createElement('input', { className: !!errors.r && 'input-error', type: 'number', name: 'r', min: '0', max: '50', onChange: this.onChange, value: circle.get('r') })
 	      ),
 	      _react2.default.createElement(
 	        'div',
 	        null,
 	        _react2.default.createElement(
 	          'button',
-	          { onClick: this.handleAdd, disabled: !!this.state.error },
+	          { onClick: this.addCircle, disabled: !_lodash2.default.isEmpty(errors) },
 	          'Add Circle'
 	        )
 	      )
 	    );
 	  },
-	  handleAdd: function handleAdd() {
-	    if (this.validateRadius()) {
-	      var circlesState = _lodash2.default.clone(this.props.appState);
-	      var circle = new _models2.default.Circle();
-	      var circleData = {
-	        id: !_lodash2.default.isEmpty(circlesState.data) ? _lodash2.default.last(circlesState.data).id + 1 : 1,
-	        x: this.refs.x.value,
-	        y: this.refs.y.value,
-	        z: this.refs.z.value
-	      };
-	      circle.set(circleData);
-	      app.circles.add(circle);
-	      circle.save();
+	  addCircle: function addCircle() {
+	    var circle = this.state.circle;
+	    var _props3 = this.props;
+	    var circles = _props3.circles;
+	    var domain = _props3.domain;
+	    var updateCircles = _props3.updateCircles;
 
-	      circlesState.data.push(circleData);
-	      this.props.setAppState(circlesState);
-	    }
-	  },
-	  handleRemove: function handleRemove(circleId) {
-	    this.setState({ error: false });
-	    var circle = app.circles.get(circleId);
-	    circle.destroy();
 
-	    var circlesState = _lodash2.default.clone(this.props.appState);
-	    _lodash2.default.remove(circlesState.data, function (circle) {
-	      return circle.id === circleId;
-	    });
-	    this.props.setAppState(circlesState);
+	    circle.validationError = circle.validate(circle.attributes, {
+	      radiusMax: this.getRadiusMax(),
+	      xMax: domain.x[1],
+	      yMax: domain.y[1] });
+	    if (!circle.validationError) {
+	      var newCircle = new _models2.default.Circle(circle.attributes);
+	      circles.add(newCircle);
+	      newCircle.save(null, { validate: false });
+	    }
+	    updateCircles(circles);
 	  },
-	  handleChange: function handleChange(e) {
-	    this.setState({ error: false });
-	    if (e.target.name === 'z') {
-	      this.validateRadius(e.target.value);
-	    }
-	    if (e.target.name === 'x' || e.target.name === 'y') {
-	      this.validateCoordinates(e.target.name, e.target.value);
-	    }
-	    this.setState((0, _defineProperty3.default)({}, e.target.name, e.target.value));
+	  removeCircle: function removeCircle(circleId) {
+	    var _props4 = this.props;
+	    var circles = _props4.circles;
+	    var updateCircles = _props4.updateCircles;
+
+	    circles.get(circleId).destroy();
+	    updateCircles(circles);
 	  },
-	  validateRadius: function validateRadius(radius) {
-	    if (!radius) radius = this.state.z;
-	    // validate that the sum of circles diameters cannot be larger than the viewport width
-	    var appState = this.props.appState;
-	    var sum = _lodash2.default.reduce(appState.data, function (result, circle) {
-	      return result + parseInt(circle.z);
-	    }, 0);
-	    if ((sum + parseInt(radius)) * 2 > appState.domain.x[1]) {
-	      this.setState({ error: 'Error: Sum of circles diameters cannot be larger than the viewport width (must be <= 100)' });
-	      return false;
-	    } else if (parseInt(radius) <= 0) {
-	      this.setState({ error: 'Error: Invalid radius size (must be > 0)' });
-	      return false;
-	    }
-	    return true;
+	  onChange: function onChange(e) {
+	    var circle = this.state.circle;
+	    var domain = this.props.domain;
+	    var _e$target = e.target;
+	    var name = _e$target.name;
+	    var value = _e$target.value;
+
+	    circle.set((0, _defineProperty3.default)({}, name, Number(value)));
+	    circle.validationError = circle.validate(circle.attributes, {
+	      radiusMax: this.getRadiusMax(),
+	      xMax: domain.x[1],
+	      yMax: domain.y[1] });
+	    this.forceUpdate();
 	  },
-	  validateCoordinates: function validateCoordinates(coordName, coordValue) {
-	    var appState = this.props.appState;
-	    if (parseInt(coordValue) > appState.domain[coordName][1] || parseInt(coordValue) < appState.domain[coordName][0]) {
-	      this.setState({ error: 'Error: The new circle won\'t fit the viewport' });
-	      return false;
-	    }
-	    return true;
+	  getRadiusMax: function getRadiusMax() {
+	    var _props5 = this.props;
+	    var circles = _props5.circles;
+	    var domain = _props5.domain;
+
+	    return domain.x[1] - _lodash2.default.sum(circles.map('r')) * 2;
 	  }
 	});
 
@@ -47523,7 +47517,6 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var ANIMATION_DURATION = 400;
 	var d3Chart = {};
 
 	d3Chart.create = function (el, props, state) {
@@ -47557,9 +47550,9 @@
 
 	  var y = _d2.default.scale.linear().range([height, 0]).domain(domain.y);
 
-	  var z = _d2.default.scale.linear().range([0, 50]).domain([1, 10]);
+	  var r = _d2.default.scale.linear().range([0, 46]).domain([1, 10]);
 
-	  return { x: x, y: y, z: z };
+	  return { x: x, y: y, r: r };
 	};
 
 	d3Chart._drawPoints = function (el, scales, data, prevScales, dispatcher) {
@@ -47574,24 +47567,24 @@
 	      return prevScales.x(d.x);
 	    }
 	    return scales.x(d.x);
-	  }).transition().duration(ANIMATION_DURATION).attr('cx', function (d) {
+	  }).transition().attr('cx', function (d) {
 	    return scales.x(d.x);
 	  });
 
 	  point.attr('cy', function (d) {
 	    return scales.y(d.y);
 	  }).attr('r', function (d) {
-	    return scales.z(d.z);
+	    return scales.r(d.r);
 	  }).on('mouseover', function (d) {
 	    dispatcher.emit('point:mouseover', d);
 	  }).on('mouseout', function (d) {
 	    dispatcher.emit('point:mouseout', d);
-	  }).transition().duration(ANIMATION_DURATION).attr('cx', function (d) {
+	  }).transition().attr('cx', function (d) {
 	    return scales.x(d.x);
 	  });
 
 	  if (prevScales) {
-	    point.exit().transition().duration(ANIMATION_DURATION).attr('cx', function (d) {
+	    point.exit().transition().attr('cx', function (d) {
 	      return scales.x(d.x);
 	    }).remove();
 	  } else {
@@ -57478,6 +57471,10 @@
 	  value: true
 	});
 
+	var _lodash = __webpack_require__(191);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
 	var _backbone = __webpack_require__(197);
 
 	var _backbone2 = _interopRequireDefault(_backbone);
@@ -57492,11 +57489,28 @@
 
 	models.Circle = _backbone2.default.Model.extend({
 	  constructorName: 'Circle',
-	  defaults: {
-	    id: null,
-	    x: null, // x coordinates
-	    y: null, // y coordinates
-	    z: null // radius coordinates
+	  validate: function validate(_ref, _ref2) {
+	    var x = _ref.x;
+	    var y = _ref.y;
+	    var r = _ref.r;
+	    var radiusMax = _ref2.radiusMax;
+	    var xMax = _ref2.xMax;
+	    var yMax = _ref2.yMax;
+
+	    var errors = {};
+	    if (r <= 0) errors.r = 'Invalid radius';
+	    if (x < 0) errors.x = 'Invalid X coordinate';
+	    if (y < 0) errors.y = 'Invalid Y coordinate';
+	    if (!errors.x && x > xMax) {
+	      errors.x = 'The new circle won\'t fit the viewport';
+	    }
+	    if (!errors.y && y > yMax) {
+	      errors.y = 'The new circle won\'t fit the viewport';
+	    }
+	    if (!errors.r && r * 2 > radiusMax) {
+	      errors.r = 'Sum of circles diameters cannot be larger than the viewport width (must be <= 100)';
+	    }
+	    return _lodash2.default.isEmpty(errors) ? null : errors;
 	  }
 	});
 
@@ -62356,7 +62370,7 @@
 /***/ function(module, exports) {
 
 	module.exports =
-		"html,\nbody {\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  font-family: \"Sans-serif\", Verdana;\n}\nh4 {\n  font-weight: normal;\n}\n#main-container {\n  background: #9BB2C4;\n  color: #000000;\n  width: 600px;\n  margin: 0 auto;\n  padding: 30px;\n}\n#main-container input {\n  width: 50px;\n}\n#main-container button {\n  margin-left: 50px;\n}\n#main-container .circles-controls div {\n  display: inline-block;\n  width: 140px;\n  margin-bottom: 5px;\n}\n#main-container .circles-controls span {\n  display: inline-block;\n  width: 30px;\n}\n#main-container .d3 {\n  font: 10px sans-serif;\n  border: 1px solid #555;\n}\n#main-container .d3bg {\n  fill: #FFF;\n}\n#main-container .d3-point {\n  fill: #62AD5E;\n  stroke: #1D5FA2;\n  stroke-width: 0;\n}\n#main-container .error {\n  color: red;\n  margin-top: 10px;\n}\n@media print {\n  body {\n    -webkit-print-color-adjust: exact;\n  }\n  #main-container {\n    background-color: #c4ad9b;\n    color: #000000;\n  }\n  #main-container .d3bg {\n    fill: #000000;\n  }\n  #main-container .d3-point {\n    fill: #9d52a1;\n  }\n}\n";
+		"html,\nbody {\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  font-family: \"Sans-serif\", Verdana;\n}\nh4 {\n  font-weight: normal;\n}\n#main-container {\n  background: #9BB2C4;\n  color: #000000;\n  width: 1100px;\n  margin: 0 auto;\n  padding: 30px;\n}\n#main-container input {\n  width: 40px;\n}\n#main-container button {\n  margin-left: 50px;\n}\n#main-container .circles-chart,\n#main-container .circles-control {\n  display: inline-block;\n  width: 500px;\n  vertical-align: top;\n}\n#main-container .circles-control {\n  margin-left: 20px;\n}\n#main-container .circles-controls div {\n  display: inline-block;\n  width: 120px;\n  margin-bottom: 5px;\n}\n#main-container .circles-controls span {\n  display: inline-block;\n  width: 20px;\n}\n#main-container .d3 {\n  font: 10px sans-serif;\n  border: 1px solid #555;\n}\n#main-container .d3bg {\n  fill: #FFF;\n}\n#main-container .d3-point {\n  fill: #62AD5E;\n  stroke: #1D5FA2;\n  stroke-width: 0;\n}\n#main-container .error {\n  color: red;\n  margin-top: 10px;\n}\n#main-container .input-error {\n  border: 2px solid red;\n}\n@media print {\n  body {\n    -webkit-print-color-adjust: exact;\n  }\n  #main-container {\n    background-color: #c4ad9b;\n    color: #000000;\n  }\n  #main-container .d3bg {\n    fill: #000000;\n  }\n  #main-container .d3-point {\n    fill: #9d52a1;\n  }\n}\n";
 
 /***/ },
 /* 257 */

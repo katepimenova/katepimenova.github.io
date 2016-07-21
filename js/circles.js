@@ -5,29 +5,32 @@ import d3Chart from './d3chart';
 import models from './models';
 
 var CirclesPage = React.createClass({
-  getInitialState() {
+  getDefaultProps() {
     return {
-      data: this.props.circlesCollection || [],
       domain: {x: [0, 100], y: [0, 100]}
     };
   },
-  setAppState(state) {
-    return this.setState(state);
+  componentDidMount() {
+    var circles = new models.Circles();
+    circles.fetch()
+      .then(() => {
+        this.updateCircles(circles);
+      });
+  },
+  updateCircles(circles) {
+    return this.setState({circles});
   },
   render() {
+    if (!this.state) return null;
+    var {domain} = this.props;
+    var {circles} = this.state;
     return (
       <div className='circles-page'>
         <h2>Circles</h2>
         <div className='circles-chart'>
-          <Chart
-            appState={this.state}
-            setAppState={this.setAppState}
-          />
+          <Chart domain={domain} circles={circles} />
         </div>
-        <CirclesControl
-          appState={this.state}
-          setAppState={this.setAppState}
-        />
+        <CirclesDataTable domain={domain} circles={circles} updateCircles={this.updateCircles} />
       </div>
     );
   }
@@ -37,157 +40,131 @@ var Chart = React.createClass({
   getDefaultProps() {
     return {
       width: '100%',
-      height: '600px'
+      height: '500px'
     };
   },
   dispatcher: null,
   componentDidMount() {
-    var el = ReactDOM.findDOMNode(this);
-    var dispatcher = d3Chart.create(el, {
-      width: this.props.width,
-      height: this.props.height
-    }, this.props.appState);
-    this.dispatcher = dispatcher;
+    var {circles, domain, width, height} = this.props;
+    this.dispatcher = d3Chart.create(
+      ReactDOM.findDOMNode(this), {width, height}, {domain, data: circles.toJSON()}
+    );
   },
   componentDidUpdate() {
-    var el = ReactDOM.findDOMNode(this);
-    d3Chart.update(el, this.props.appState, this.dispatcher);
+    var {circles, domain} = this.props;
+    d3Chart.update(
+      ReactDOM.findDOMNode(this), {domain, data: circles.toJSON()}, this.dispatcher
+    );
   },
   render() {
     return <div className='chart' />;
   }
 });
 
-var CirclesControl = React.createClass({
+var CirclesDataTable = React.createClass({
   getInitialState() {
     return {
-      x: 5,
-      y: 5,
-      z: 5,
-      error: false
+      circle: new models.Circle({
+        x: 0,
+        y: 0,
+        r: 5
+      })
     };
   },
   render() {
-    var circles = this.props.appState.data;
+    var {circles} = this.props;
+    var errors = this.state.circle.validationError;
     return (
-      <div>
+      <div className='circles-control'>
         <h4>You can add up to 5 circles. Use x/y coordinates of circle center and its radius to add the shape.</h4>
-        {_.map(circles, (circle, key) => {
-          return this.viewCircleParameters(circles, circle, key);
-        })}
+        {circles.map(this.renderCircleData)}
         {circles.length < 5 &&
-          <div>{this.addCircleControl(circles)}</div>
+          this.renderNewCircleForm()
         }
-        {!!this.state.error &&
-          <div className='error'>
-            {this.state.error}
-          </div>
-        }
+        <ul className='error'>
+          {_.map(errors, (error, key) =>
+            <li key={key}>{error}</li>)
+          }
+        </ul>
       </div>
     );
   },
-  viewCircleParameters(circles, circle, key) {
-    return <div className='circles-controls' key={circle.id}>
-      <span>
-        {key + 1}.
-      </span>
+  renderCircleData(circle, index) {
+    return <div className='circles-controls' key={index}>
+      <span>{index + 1}.  </span>
+      <div>
+        <label>x:</label> {circle.get('x')};
+      </div>
+      <div>
+        <label>y:</label> {circle.get('y')};
+      </div>
+      <div>
+        <label>radius:</label> {circle.get('r')};
+      </div>
+      <div>
+        <button onClick={_.partial(this.removeCircle, circle.id)}>
+          Remove
+        </button>
+      </div>
+    </div>;
+  },
+  renderNewCircleForm() {
+    var {circle} = this.state;
+    var {domain} = this.props;
+    var errors = circle.validationError || {};
+    return <div className='circles-controls'>
+      <span>&nbsp;</span>
       <div>
         <label>x: </label>
-        {circle.x};
+        <input className={!!errors.x && 'input-error'} type='number' name='x' min={domain.x[0]} max={domain.x[1]} onChange={this.onChange} value={circle.get('x')} />
       </div>
       <div>
         <label>y: </label>
-        {circle.y};
+        <input className={!!errors.y && 'input-error'} type='number' name='y' min={domain.y[0]} max={domain.y[1]} onChange={this.onChange} value={circle.get('y')} />
       </div>
       <div>
         <label>radius: </label>
-        {circle.z};
+        <input className={!!errors.r && 'input-error'} type='number' name='r' min='0' max='50' onChange={this.onChange} value={circle.get('r')} />
       </div>
       <div>
-        <button onClick={_.partial(this.handleRemove, circle.id)}>Remove</button>
+        <button onClick={this.addCircle} disabled={!_.isEmpty(errors)}>Add Circle</button>
       </div>
     </div>;
   },
-  addCircleControl() {
-    return <div className='circles-controls'>
-      <span>
-        &nbsp;
-      </span>
-      <div>
-        <label>x: </label>
-        <input type='number' name='x' ref='x' min='0' max='100' onChange={this.handleChange} value={this.state.x} />
-      </div>
-      <div>
-        <label> y: </label>
-        <input type='number' name='y' ref='y' min='0' max='100' onChange={this.handleChange} value={this.state.y} />
-      </div>
-      <div>
-        <label> radius: </label>
-        <input type='number' name='z' ref='z' min='0' max='100' onChange={this.handleChange} value={this.state.z} />
-      </div>
-      <div>
-        <button onClick={this.handleAdd} disabled={!!this.state.error}>Add Circle</button>
-      </div>
-    </div>;
-  },
-  handleAdd() {
-    if (this.validateRadius()) {
-      var circlesState = _.clone(this.props.appState);
-      var circle = new models.Circle();
-      var circleData = {
-        id: !_.isEmpty(circlesState.data) ? _.last(circlesState.data).id + 1 : 1,
-        x: this.refs.x.value,
-        y: this.refs.y.value,
-        z: this.refs.z.value
-      };
-      circle.set(circleData);
-      app.circles.add(circle);
-      circle.save();
+  addCircle() {
+    var {circle} = this.state;
+    var {circles, domain, updateCircles} = this.props;
 
-      circlesState.data.push(circleData);
-      this.props.setAppState(circlesState);
+    circle.validationError = circle.validate(circle.attributes, {
+      radiusMax: this.getRadiusMax(),
+      xMax: domain.x[1],
+      yMax: domain.y[1]});
+    if (!circle.validationError) {
+      var newCircle = new models.Circle(circle.attributes);
+      circles.add(newCircle);
+      newCircle.save(null, {validate: false});
     }
+    updateCircles(circles);
   },
-  handleRemove(circleId) {
-    this.setState({error: false});
-    var circle = app.circles.get(circleId);
-    circle.destroy();
-
-    var circlesState = _.clone(this.props.appState);
-    _.remove(circlesState.data, (circle) => circle.id === circleId);
-    this.props.setAppState(circlesState);
+  removeCircle(circleId) {
+    var {circles, updateCircles} = this.props;
+    circles.get(circleId).destroy();
+    updateCircles(circles);
   },
-  handleChange(e) {
-    this.setState({error: false});
-    if (e.target.name === 'z') {
-      this.validateRadius(e.target.value);
-    }
-    if (e.target.name === 'x' || e.target.name === 'y') {
-      this.validateCoordinates(e.target.name, e.target.value);
-    }
-    this.setState({[e.target.name]: e.target.value});
+  onChange(e) {
+    var {circle} = this.state;
+    var {domain} = this.props;
+    var {name, value} = e.target;
+    circle.set({[name]: Number(value)});
+    circle.validationError = circle.validate(circle.attributes, {
+      radiusMax: this.getRadiusMax(),
+      xMax: domain.x[1],
+      yMax: domain.y[1]});
+    this.forceUpdate();
   },
-  validateRadius(radius) {
-    if (!radius) radius = this.state.z;
-    // validate that the sum of circles diameters cannot be larger than the viewport width
-    var appState = this.props.appState;
-    var sum = _.reduce(appState.data, (result, circle) => result + parseInt(circle.z), 0);
-    if ((sum + parseInt(radius))*2 > appState.domain.x[1]) {
-      this.setState({error: 'Error: Sum of circles diameters cannot be larger than the viewport width (must be <= 100)'});
-      return false;
-    } else if (parseInt(radius) <= 0) {
-      this.setState({error: 'Error: Invalid radius size (must be > 0)'});
-      return false;
-    }
-    return true;
-  },
-  validateCoordinates(coordName, coordValue) {
-    var appState = this.props.appState;
-    if (parseInt(coordValue) > appState.domain[coordName][1] || parseInt(coordValue) < appState.domain[coordName][0]) {
-      this.setState({error: 'Error: The new circle won\'t fit the viewport'});
-      return false;
-    }
-    return true;
+  getRadiusMax() {
+    var {circles, domain} = this.props;
+    return domain.x[1] - _.sum(circles.map('r')) * 2;
   }
 });
 
