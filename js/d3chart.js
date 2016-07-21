@@ -15,7 +15,7 @@ d3Chart.create = (el, props, state) => {
     .attr('height', props.height);
   
   svg.append('g')
-      .attr('class', 'd3-points');
+    .attr('class', 'd3-points');
 
   var dispatcher = new EventEmitter();
   d3Chart.update(el, state, dispatcher);
@@ -88,7 +88,7 @@ d3Chart._drawPoints = (el, scales, data, prevScales, dispatcher) => {
   }
   else {
     point.exit()
-        .remove();
+      .remove();
   }
 };
 
